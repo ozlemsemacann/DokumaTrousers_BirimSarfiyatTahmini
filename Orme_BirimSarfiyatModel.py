@@ -1,68 +1,92 @@
 import streamlit as st
 import pandas as pd
-from catboost import CatBoostRegressor
 
-# -----------------------------
-# Modeli yukle
-# -----------------------------
-@st.cache_resource
-def load_model():
-    model = CatBoostRegressor()
-    model.load_model("Orme_BirimSarfiyatModel.cbm")
-    return model
+# Sayfa yapılandırması
+st.set_page_config(page_title="Tekstil Metraj Hesaplama", layout="wide")
 
-model = load_model()
+st.title("✂️ Masaüstü Acil Metraj Hesaplama Uygulaması")
+st.write("Excel dosyanızdaki hesaplama mantığına göre hazırlanmıştır.")
 
-# -----------------------------
-# Streamlit Arayuzu
-# -----------------------------
-st.title("🧵 Birim Sarfiyat Tahmini")
+# --- Yan Menü (Global Parametreler) ---
+st.sidebar.header("Genel Ayarlar")
+kumas_en = st.sidebar.number_input("Kumaş Eni (cm)", value=140.0, step=1.0)
+en_cekme = st.sidebar.number_input("En Çekme (%)", value=1.5, step=0.1)
+boy_cekme = st.sidebar.number_input("Boy Çekme (%)", value=1.5, step=0.1)
 
-st.markdown("Modeli önceden eğittik ve yükledik. Şimdi değerleri gir, tahmini al!")
+# --- Veri Giriş Alanı ---
+st.subheader("Parça Listesi")
+st.info("Tabloya yeni satır ekleyebilir, değerleri doğrudan düzenleyebilirsiniz.")
 
-# Kullan?c?dan giri?ler
-inputs = {}
-inputs['Departman'] = st.selectbox("Departman", ['Man'])
-inputs['Model_Turu'] = st.selectbox("Model_Turu", ['SHORT_SLEEVE_T-SHIRT','SWEAT_SHIRT'])
-inputs['Fit'] = st.selectbox("Fit", ['BOXY_FIT','LOOSE_FIT','REGULAR_FIT','NEW_REGULAR_FIT','RELAX_FIT','OVERSIZE_FIT','COMFORT_FIT','SLIM_FIT','STANDART_FIT','NEW_BOXY'])
-# Kuma? Eni De?erini 130 ile 176 aras?na s?n?rlama
-inputs['Kumas_Eni'] = st.number_input(
-    "Kumas_Eni",
-    min_value=110.0,
-    max_value=200.0,
-    value=180.0) # Ba?lang?c de?eri
-# Kuma? Gramaji 1 ile 30 aras?na s?n?rlama
-inputs['Kumas_Gramaji'] = st.number_input(
-    "Kumas_Gramaji",
-    min_value=110.0,
-    max_value=420.0,
-    value=150.0) # Ba?lang?c de?eri
-inputs['Pastal_Turu'] = st.selectbox("Pastal_Turu", ['Ana_Beden','Etek_Kol','Yaka','Kol','Etek_Kol_Yaka','Omuz','Kol_Yaka','Kapuson','Cep','Etek'])
-inputs['Asorti'] = st.selectbox("Asorti", ['XS(1),S(2),M(3),L(2),XL(1),XXL(1)','XS(1),S(2),M(3),L(3),XL(2),XXL(1),3XL(1)','XS(1),S(2),M(2),L(2),XL(1)','S(2),M(2),L(2),XL(2),XXL(1)','S(4),M(4),L(4),XL(4),XXL(2)','XS(1),S(2),M(2),L(2),XL(2),XXL(1)','XS(2),S(4),M(4),L(4),XL(4),XXL(2)','XS(1),S(1),M(2),L(2),XL(2),XXL(3),3XL(1),4XL(1)','XS(2),S(4),M(6),L(4),XL(2),XXL(2)','XS(4),S(6),M(6),L(6),XL(4)','XS(2),S(3),M(3),L(3),XL(2)','S(2),M(3),L(3),XL(2),XXL(1)','S(1),M(3),L(3),XL(3),XXL(2),3XL(1)','XS(1),S(2),M(3),L(1),XL(1)','XS(1),S(2),M(3),L(2),XL(1)','S(2),M(3),L(2),XL(1)','XS(2),S(2),M(2),L(2),XL(2),XXL(2)','XS(1),S(2),M(3),L(3),XL(2),XXL(1)','XS(1),S(2),M(3),L(3),XL(2),2XL(1),3XL(1)','XS(1),S(2),M(3),L(2),XL(2)','S(1),M(2),L(3),XL(2),XXL(1)','XS(2),S(3),M(3),L(2),XL(1),XXL(1)','XS(2),S(3),M(3),L(2),XL(1)','S(1),M(2),L(2),XL(1)','XS(1),S(2),M(2),L(2),XL(1),XXL(1)','XS(1),S(2),M(2),L(1)','S(2),M(3),L(3),XL(2),2XL(1)','S(1),M(2),L(3),XL(3),XXL(2),3XL(1)','S(2),M(3),L(2),XL(1),XXL(1)','XS(1),S(2),M(3),L(2),XL(2),XXL(1)','S(2),M(3),L(3),XL(2)','XS(1),S(3),M(3),L(2),XL(1)','S(1),M(2),L(2),XL(2),XXL(1)','S(1),M(2),L(2),XL(2),XXL(1),3XL(1)','S(1),M(2),L(2),XL(2),XXL(2)','XS(1),S(2),M(3),L(3),XL(2)','S(1),M(2),L(2),XL(1),XXL(1)','S(1),M(3),L(3),XL(2),XXL(1)','XS(1),S(2),M(3),L(3),XL(1),XXL(1)','XS(1),S(2),M(3),L(2),XL(2),XXL(2),3XL(1)','XS(1),S(2),M(3),L(3),XL(2),XXL(2),3XL(1)','XS(1),S(2),M(3),L(2),XL(2','3XL(6),4XL(4),5XL(2),6XL(1)','S(2),M(2),L(2)','S(6),M(9),L(9),XL(6),XXL(3)','S(3),M(6),L(6),XL(6),XXL(3)','S(6),M(6),L(6)','L(4),XL(4),XXL(4)','XS(2),S(4),M(6),L(4),XL(2)','L(2),XL(2),XXL(2)','XS(2),S(4),M(6),L(6),XL(4),XXL(2)','S(2),M(6),L(6),XL(6),XXL(4),3XL(2)','XS(2),S(4),M(4),L(4),XL(4),XXL(4),3XL(2)','M(10),L(10),XL(4)','S(6),L(2),XL(6),XXL(6),3XL(2)','S(6),M(2),L(2),XL(2),XXL(4),3XL(6)','XS(1),S(2),M(2),L(2),XL(2),XXL(2),3XL(1)','M(5),L(5),XL(2)','S(3),L(1),XL(3),XXL(3),3XL(1)','S(3),M(1),L(1),XL(1),XXL(2),3XL(3)','XS(1),S(2),M(4),L(2),XL(2),XXL(1)','XS(2),S(4),M(8),L(4),XL(4),XXL(2)','XS(2),S(1),M(1),L(8)','XS(2),S(3),M(2),L(2)','XS(4),S(2),M(2),L(16)','XS(4),S(6),M(4),L(4)','XS(1),S(1),M(1),L(1),XXL(1)','S(1),M(1),L(1),XL(1)','S(1),M(1),L(2),XL(2)','XS(1),S(1),M(2),L(3),XL(2),XXL(2)'])
-# Asorti Say?s? De?erini 1 ile 30 aras?na s?n?rlama
-inputs['Toplam_Asorti'] = st.number_input(
-    "Toplam_Asorti",
-    min_value=6.0,
-    max_value=14.0,
-    value=10.0) # Ba?lang?c de?eri
-# Parca Say?s? De?erini 1 ile 13 aras?na s?n?rlama
-inputs['Parca_Sayisi'] = st.number_input(
-    "Parca_Sayisi",
-    min_value=1.0,
-    max_value=13.0,
-    value=4.0) # Ba?lang?c de?eri
+# Başlangıç verisi (Excel'deki örneğe benzer)
+if 'data' not in st.session_state:
+    st.session_state.data = pd.DataFrame([
+        {"Tür": "Beden", "Adet": 4, "Parça En": 39.0, "Parça Boy": 110.0},
+        {"Tür": "Kemer", "Adet": 1, "Parça En": 102.0, "Parça Boy": 11.0},
+    ])
 
-# DataFrame olu?tur
-X_new = pd.DataFrame([inputs])
+# Düzenlenebilir tablo (st.data_editor)
+edited_df = st.data_editor(
+    st.session_state.data, 
+    num_rows="dynamic", 
+    use_container_width=True,
+    column_config={
+        "Adet": st.column_config.NumberColumn(min_value=0),
+        "Parça En": st.column_config.NumberColumn(help="Santimetre cinsinden"),
+        "Parça Boy": st.column_config.NumberColumn(help="Santimetre cinsinden"),
+    }
+)
 
-# Tahmin
-if st.button("Tahmin Et"):
-    from catboost import Pool
+# --- Hesaplamalar ---
+def calculate_metrics(df, k_en, e_cekme, b_cekme):
+    # Excel'deki formüllere sadık kalarak:
+    # Çekmeli Boy = Parça En / (1 - (Boy Çekme / 100))
+    # Çekmeli En = Parça Boy / (1 - (En Çekme / 100))
+    # Birim Metraj = (Adet * Çekmeli Boy * Çekmeli En) / Kumaş En
+    
+    calc_df = df.copy()
+    if not calc_df.empty:
+        calc_df['Çekmeli Boy'] = calc_df['Parça En'] / (1 - (b_cekme / 100))
+        calc_df['Çekmeli En'] = calc_df['Parça Boy'] / (1 - (e_cekme / 100))
+        calc_df['Birim Metraj'] = (calc_df['Adet'] * calc_df['Çekmeli Boy'] * calc_df['Çekmeli En']) / k_en
+    else:
+        calc_df['Çekmeli Boy'] = 0
+        calc_df['Çekmeli En'] = 0
+        calc_df['Birim Metraj'] = 0
+        
+    return calc_df
 
-    cat_features = ['Departman', 'Model_Turu', 'Fit',
-                    'Pastal_Turu', 'Asorti']
+# Sonuçları hesapla
+result_df = calculate_metrics(edited_df, kumas_en, en_cekme, boy_cekme)
 
-    X_new_pool = Pool(X_new, cat_features=cat_features)
-    prediction = model.predict(X_new_pool)[0]
+# --- Sonuç Ekranı ---
+st.divider()
+st.subheader("Hesaplama Sonuçları")
 
-    st.success(f"🔮 Tahmini Birim Sarfiyat: **{prediction:.2f}**")
+# Tabloyu göster (Sayıları formatlayarak)
+st.dataframe(
+    result_df.style.format({
+        'Çekmeli Boy': '{:.2f}',
+        'Çekmeli En': '{:.2f}',
+        'Birim Metraj': '{:.4f}'
+    }),
+    use_container_width=True
+)
+
+# Toplam Metraj Özeti
+toplam_metraj = result_df['Birim Metraj'].sum()
+
+col1, col2 = st.columns(2)
+with col1:
+    st.metric(label="TOPLAM METRAJ", value=f"{toplam_metraj:.2f} cm")
+with col2:
+    st.metric(label="TOPLAM METRAJ (Metre)", value=f"{toplam_metraj/100:.4f} m")
+
+# --- Export ---
+csv = result_df.to_csv(index=False).encode('utf-8')
+st.download_button(
+    "Sonuçları CSV Olarak İndir",
+    csv,
+    "maliyet_tablosu.csv",
+    "text/csv",
+    key='download-csv'
+)
