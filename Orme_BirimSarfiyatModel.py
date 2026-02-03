@@ -7,11 +7,12 @@ st.set_page_config(page_title="Tekstil Metraj Hesaplama", layout="wide")
 st.title("✂️ Masaüstü Acil Metraj Hesaplama Uygulaması")
 
 # --- KALICI AÇIKLAMALAR BÖLÜMÜ ---
+# Bu alan uygulamanın en üstünde her zaman görünür kalır.
 st.info("""
-**📌 Parça Ölçü Notları (Kalıcı Açıklama):**
-* **BEDEN:** En: Baldır genişliği + 3 cm ekle | Boy: İç boy + Ön ağ + 3 cm ekle
-* **KEMER:** En: Bel genişliği gergin + 3 cm ekle | Boy: Kemer yüksekliği * 2 cm + 3 cm ekle
-* **CEP:** En: Cep eni + 3 cm ekle | Boy: Otomat yüksekliği
+**📌 Ölçü Alma Talimatları (Hesaplamadan Önce Ekleyiniz):**
+* **BEDEN:** En: Baldır genişliği + 3 cm | Boy: İç boy + Ön ağ + 3 cm
+* **KEMER:** En: Bel genişliği gergin + 3 cm | Boy: Kemer yüksekliği * 2 + 3 cm
+* **CEP:** En: Cep eni + 3 cm | Boy: Otomat yüksekliği
 """)
 
 # --- Yan Menü (Global Parametreler) ---
@@ -20,19 +21,27 @@ kumas_en = st.sidebar.number_input("Kumaş Eni (cm)", value=140.0, step=1.0)
 en_cekme = st.sidebar.number_input("En Çekme (%)", value=1.5, step=0.1)
 boy_cekme = st.sidebar.number_input("Boy Çekme (%)", value=1.5, step=0.1)
 
+# Eğer uygulama güncellenmezse veriyi sıfırlamak için bir buton
+if st.sidebar.button("Tabloyu ve Verileri Sıfırla"):
+    st.session_state.data = pd.DataFrame([
+        {"Tür": "Beden", "Adet": 4, "Parça En": 39.0, "Parça Boy": 110.0},
+        {"Tür": "Kemer", "Adet": 1, "Parça En": 102.0, "Parça Boy": 11.0},
+        {"Tür": "Cep", "Adet": 2, "Parça En": 0.0, "Parça Boy": 0.0},
+    ])
+    st.rerun()
+
 # --- Veri Giriş Alanı ---
 st.subheader("Parça Listesi")
 
-# Başlangıç verisi (Beden, Kemer ve istediğiniz Cep satırı eklendi)
+# Başlangıç verisi (Kod ilk çalıştığında bu tablo yüklenir)
 if 'data' not in st.session_state:
     st.session_state.data = pd.DataFrame([
         {"Tür": "Beden", "Adet": 4, "Parça En": 39.0, "Parça Boy": 110.0},
         {"Tür": "Kemer", "Adet": 1, "Parça En": 102.0, "Parça Boy": 11.0},
-        {"Tür": "Cep", "Adet": 2, "Parça En": 0.0, "Parça Boy": 0.0}, # Yeni Cep Satırı
+        {"Tür": "Cep", "Adet": 2, "Parça En": 0.0, "Parça Boy": 0.0},
     ])
 
 # Düzenlenebilir tablo
-# column_config ile başlıkların üzerine gelindiğinde açıklamaların görünmesini sağladık
 edited_df = st.data_editor(
     st.session_state.data, 
     num_rows="dynamic", 
@@ -40,17 +49,17 @@ edited_df = st.data_editor(
     column_config={
         "Tür": st.column_config.SelectboxColumn(
             "Parça Türü",
-            options=["Beden", "Kemer", "Cep", "Yan Cep", "Kapak", "Diğer"],
-            help="Beden, Kemer veya Cep seçiniz."
+            options=["Beden", "Kemer", "Cep", "Yan Cep", "Kapak", "Astar"],
+            help="Parça tipini seçiniz"
         ),
         "Adet": st.column_config.NumberColumn("Adet", min_value=0),
         "Parça En": st.column_config.NumberColumn(
             "Parça En (cm)", 
-            help="Beden: Baldır+3 | Kemer: Bel+3 | Cep: Cep eni+3"
+            help="BEDEN: Baldır+3 | KEMER: Bel+3 | CEP: Cep eni+3"
         ),
         "Parça Boy": st.column_config.NumberColumn(
             "Parça Boy (cm)", 
-            help="Beden: İç boy+Ön ağ+3 | Kemer: Yükseklik*2+3 | Cep: Otomat Yükseklik"
+            help="BEDEN: İç boy+Ön ağ+3 | KEMER: Yükseklik*2+3 | CEP: Otomat Yükseklik"
         ),
     }
 )
@@ -59,9 +68,10 @@ edited_df = st.data_editor(
 def calculate_metrics(df, k_en, e_cekme, b_cekme):
     calc_df = df.copy()
     if not calc_df.empty:
-        # Excel formülleri:
+        # Çekmeli hesaplamalar (Excel formülünüzle birebir aynı)
         calc_df['Çekmeli Boy'] = calc_df['Parça En'] / (1 - (b_cekme / 100))
         calc_df['Çekmeli En'] = calc_df['Parça Boy'] / (1 - (e_cekme / 100))
+        # Birim Metraj = (Adet * Çekmeli Boy * Çekmeli En) / Kumaş En
         calc_df['Birim Metraj'] = (calc_df['Adet'] * calc_df['Çekmeli Boy'] * calc_df['Çekmeli En']) / k_en
     return calc_df
 
@@ -86,7 +96,7 @@ col1, col2 = st.columns(2)
 with col1:
     st.metric(label="TOPLAM BİRİM METRAJ", value=f"{toplam_metraj:.2f} cm")
 with col2:
-    st.metric(label="METRE CİNSİNDEN", value=f"{toplam_metraj/100:.4f} m")
+    st.metric(label="METRE CİNSİNDEN (Toplam)", value=f"{toplam_metraj/100:.4f} m")
 
-# Satır silme hatırlatıcısı
-st.caption("💡 Satır silmek için: Satırın soluna tıklayıp seçin ve klavyeden 'Delete' tuşuna basın.")
+# Alt Bilgi
+st.caption("💡 Satır silmek için: Sol baştaki boşluğa tıklayıp satırı seçin ve klavyeden 'Delete' tuşuna basın.")
