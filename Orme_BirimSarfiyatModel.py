@@ -62,4 +62,31 @@ def calculate_metrics(df, k_en, e_cekme, b_cekme):
         # Excel formülleri:
         calc_df['Çekmeli Boy'] = calc_df['Parça En'] / (1 - (b_cekme / 100))
         calc_df['Çekmeli En'] = calc_df['Parça Boy'] / (1 - (e_cekme / 100))
-        calc_df['Birim Metraj'] = (calc_df['Adet'] * calc_df
+        calc_df['Birim Metraj'] = (calc_df['Adet'] * calc_df['Çekmeli Boy'] * calc_df['Çekmeli En']) / k_en
+    return calc_df
+
+result_df = calculate_metrics(edited_df, kumas_en, en_cekme, boy_cekme)
+
+# --- Sonuç Ekranı ---
+st.divider()
+st.subheader("Hesaplama Sonuçları")
+
+st.dataframe(
+    result_df.style.format({
+        'Çekmeli Boy': '{:.2f}',
+        'Çekmeli En': '{:.2f}',
+        'Birim Metraj': '{:.4f}'
+    }),
+    use_container_width=True
+)
+
+toplam_metraj = result_df['Birim Metraj'].sum()
+
+col1, col2 = st.columns(2)
+with col1:
+    st.metric(label="TOPLAM BİRİM METRAJ", value=f"{toplam_metraj:.2f} cm")
+with col2:
+    st.metric(label="METRE CİNSİNDEN", value=f"{toplam_metraj/100:.4f} m")
+
+# Satır silme hatırlatıcısı
+st.caption("💡 Satır silmek için: Satırın soluna tıklayıp seçin ve klavyeden 'Delete' tuşuna basın.")
