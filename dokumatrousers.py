@@ -19,7 +19,7 @@ if st.button("⚠️ UYGULAMAYI VE TABLOYU ZORLA SIFIRLA", on_click=hafizayi_tem
 # 4. KALICI AÇIKLAMALAR (Artık info kutusu içinde)
 st.success("""
 **📏 Ölçü Formülleri:**
-* **BEDEN:** En: Baldır genişliği + 5 cm | Boy: İç boy + Ön ağ + 3 cm
+* **BEDEN:** En: Baldır genişliği + 3 cm | Boy: İç boy + Ön ağ + 5 cm
 * **KEMER:** En: Bel gergin*2 + 3 cm | Boy: Kemer yükseklik * 2 + 3 cm
 * **CEP:** En: Cep eni + 3 cm | Boy: Fleto ise Otomat yüksekliği, değilse Cep boyu
 """)
@@ -74,3 +74,4 @@ st.dataframe(res_df, use_container_width=True)
 toplam = res_df['Birim Metraj'].sum()
 
 st.metric("TOPLAM METRAJ (Metre)", f"{toplam/100:.4f} m")
+
