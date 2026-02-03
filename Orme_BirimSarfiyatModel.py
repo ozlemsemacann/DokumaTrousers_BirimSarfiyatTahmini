@@ -100,3 +100,27 @@ with col2:
 
 # Alt Bilgi
 st.caption("💡 Satır silmek için: Sol baştaki boşluğa tıklayıp satırı seçin ve klavyeden 'Delete' tuşuna basın.")
+
+import streamlit as st
+import pandas as pd
+
+st.set_page_config(page_title="Tekstil Metraj Hesaplama", layout="wide")
+st.title("✂️ Masaüstü Acil Metraj Hesaplama Uygulaması")
+
+# --- SIFIRLA BUTONU (ANA SAYFADA) ---
+if st.button("🔄 TÜM VERİLERİ VE TABLOYU SIFIRLA"):
+    st.session_state.data = pd.DataFrame([
+        {"Tür": "Beden", "Adet": 4, "Parça En": 39.0, "Parça Boy": 110.0},
+        {"Tür": "Kemer", "Adet": 1, "Parça En": 102.0, "Parça Boy": 11.0},
+        {"Tür": "Cep", "Adet": 2, "Parça En": 0.0, "Parça Boy": 0.0},
+    ])
+    st.rerun()
+
+# --- KALICI AÇIKLAMALAR ---
+st.info("""
+**📌 Ölçü Alma Talimatları:**
+* **BEDEN:** En: Baldır + 3 cm | Boy: İç boy + Ön ağ + 3 cm
+* **KEMER:** En: Bel gergin + 3 cm | Boy: Kemer yükseklik * 2 + 3 cm
+* **CEP:** En: Cep eni + 3 cm | Boy: Otomat yüksekliği
+""")
+
