@@ -13,7 +13,7 @@ def hafizayi_temizle():
 st.title("✂️ Masaüstü Acil Metraj Hesaplama")
 
 # 3. KIRMIZI SIFIRLAMA BUTONU (Eğer değişiklik görmüyorsanız buna basın)
-if st.button("⚠️ UYGULAMAYI VE TABLOYU ZORLA SIFIRLA", on_click=hafizayi_temizle):
+if st.button("⚠️ Verileri Sıfırla", on_click=hafizayi_temizle):
     st.rerun()
 
 # 4. KALICI AÇIKLAMALAR (Artık info kutusu içinde)
@@ -74,4 +74,5 @@ st.dataframe(res_df, use_container_width=True)
 toplam = res_df['Birim Metraj'].sum()
 
 st.metric("TOPLAM METRAJ (Metre)", f"{toplam/100:.4f} m")
+
 
