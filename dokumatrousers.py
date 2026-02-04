@@ -10,7 +10,7 @@ def hafizayi_temizle():
         del st.session_state[key]
     st.rerun()
 
-st.title("✂️ Masaüstü Acil Metraj Hesaplama")
+st.title("✂️ Trousers Metraj Hesaplama")
 
 # 3. KIRMIZI SIFIRLAMA BUTONU (Eğer değişiklik görmüyorsanız buna basın)
 if st.button("⚠️ Verileri Sıfırla", on_click=hafizayi_temizle):
@@ -74,6 +74,7 @@ st.dataframe(res_df, use_container_width=True)
 toplam = res_df['Birim Metraj'].sum()
 
 st.metric("TOPLAM METRAJ (Metre)", f"{toplam/100:.4f} m")
+
 
 
 
