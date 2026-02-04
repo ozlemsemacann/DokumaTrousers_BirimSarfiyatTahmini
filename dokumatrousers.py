@@ -21,7 +21,7 @@ st.success("""
 **📏 Ölçü Formülleri:**
 * **BEDEN:** En: Baldır genişliği + 3 cm | Boy: İç boy + Ön ağ + 5 cm
 * **KEMER:** En: Bel gergin*2 + 3 cm | Boy: Kemer yükseklik * 2 + 3 cm
-* **CEP:** En: Cep eni + 3 cm | Boy: Fleto ise Otomat yüksekliği, değilse Cep boyu
+* **CEP:** En: Cep eni + 3 cm | Boy: Fleto ise Otomat yüksekliği, değilse Cep boyu + 3 cm
 """)
 
 # 5. Yan Menü Ayarları
@@ -74,5 +74,6 @@ st.dataframe(res_df, use_container_width=True)
 toplam = res_df['Birim Metraj'].sum()
 
 st.metric("TOPLAM METRAJ (Metre)", f"{toplam/100:.4f} m")
+
 
 
