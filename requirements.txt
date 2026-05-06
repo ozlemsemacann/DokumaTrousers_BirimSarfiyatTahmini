@@ -1,3 +1,5 @@
 streamlit
 pandas
 catboost
+openpyxl
+st-gsheets-connection
